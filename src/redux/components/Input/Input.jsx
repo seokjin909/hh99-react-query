@@ -8,7 +8,9 @@ import "./styles";
 import { StyledDiv } from "./styles";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
-import { addTodo } from "../../modules/todos";
+// import { addTodo } from "../../modules/todos";
+import { addTodo } from "../../../api/todos";
+import { useMutation, useQueryClient } from "react-query";
 
 /**
  * 컴포넌트 개요 : Todo 메인 페이지에서 제목과 내용을 입력하는 영역
@@ -18,6 +20,15 @@ import { addTodo } from "../../modules/todos";
  */
 function Input() {
   const dispatch = useDispatch();
+
+  // 리액트 쿼리 관련 코드
+  const queryClient = useQueryClient();
+  const mutation = useMutation(addTodo, {
+    onSuccess: () => {
+      queryClient.invalidateQueries("todos");
+      console.log("성공하였습니다.");
+    },
+  });
 
   // useSelector를 통한, store의 값 접근
   const todos = useSelector((state) => state.todos);
@@ -64,9 +75,7 @@ function Input() {
     }
 
     // 이미 존재하는 todo 항목이면 오류
-    const validationArr = todos.filter(
-      (item) => item.title === title && item.contents === contents
-    );
+    const validationArr = todos.filter((item) => item.title === title && item.contents === contents);
 
     // "02" : 내용 중복 안내
     if (validationArr.length > 0) {
@@ -83,7 +92,8 @@ function Input() {
 
     // todo를 추가하는 reducer 호출
     // 인자 : payload
-    dispatch(addTodo(newTodo));
+    // dispatch(addTodo(newTodo));
+    mutation.mutate(newTodo);
 
     // state 두 개를 초기화
     setTitle("");
@@ -95,21 +105,9 @@ function Input() {
       <form onSubmit={handleSubmitButtonClick}>
         <FlexDiv>
           <RightMarginBox margin={10}>
-            <LabledInput
-              id="title"
-              label="제목"
-              placeholder="제목을 입력해주세요."
-              value={title}
-              onChange={handleTitleChange}
-            />
+            <LabledInput id="title" label="제목" placeholder="제목을 입력해주세요." value={title} onChange={handleTitleChange} />
             <HeightBox height={10} />
-            <LabledInput
-              id="contents"
-              label="내용"
-              placeholder="내용을 입력해주세요."
-              value={contents}
-              onChange={handleContentsChange}
-            />
+            <LabledInput id="contents" label="내용" placeholder="내용을 입력해주세요." value={contents} onChange={handleContentsChange} />
           </RightMarginBox>
           <StyledButton type="submit">제출</StyledButton>
         </FlexDiv>
